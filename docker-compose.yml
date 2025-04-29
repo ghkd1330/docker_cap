@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  camera:
+    build:
+      context: ./Camera
+      dockerfile: Dockerfile
+    container_name: camera
+    volumes:
+      - ./Docker_Volume:/vision-pipeline/Docker_Volume
+      - ./Camera:/app
+      - ./utils:/utils
+    devices:
+    - "/dev/bus/usb:/dev/bus/usb"
+    privileged: true
+    working_dir: /app
+    command: python3 poll_and_capture.py
+
+  grounded_sam:
+    image: grounded_sam2:1.0
+    container_name: grounded_sam
+    volumes:
+      - ./Docker_Volume:/vision-pipeline/Docker_Volume
+      - ./Grounded-SAM-2:/vision-pipeline/Grounded-SAM-2
+    working_dir: /vision-pipeline/Grounded-SAM-2
+    command: python3 watch_and_process.py
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+
+  m2t2:
+    build:
+      context: ./M2T2
+      dockerfile: Dockerfile
+    image: m2t2:latest
+    container_name: m2t2
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    volumes:
+      - ./Docker_Volume:/vision-pipeline/Docker_Volume
+      - ./M2T2:/workspace
+    working_dir: /workspace
+    command: python3 watch_and_infer.py
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
