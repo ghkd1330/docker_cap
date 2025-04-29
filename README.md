@@ -1,0 +1,1 @@
+python demo.py eval.checkpoint=/workspace/m2t2.pth eval.data_dir=/vision-pipeline/Docker_Volume eval.mask_thresh=0.8 eval.num_runs=1
